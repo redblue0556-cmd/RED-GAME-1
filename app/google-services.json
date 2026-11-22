@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "536284325762",
+    "project_id": "gen-lang-client-0850811732",
+    "storage_bucket": "gen-lang-client-0850811732.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:536284325762:android:8d51dea69c615ef4df119b",
+        "android_client_info": {
+          "package_name": "com.aistudio.redgame.kxmpzq"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "536284325762-285olcsmucqr9738lsra5822ljpe915t.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.aistudio.redgame.kxmpzq",
+            "certificate_hash": "c71a06b4697b98fffc30380749b6daf5cc7cac87"
+          }
+        },
+        {
+          "client_id": "536284325762-sodbnkc8matajqsir2p9iusik9dnr9kv.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB8Mjbp0164bm06YdQUMiEQH97vic1MK50"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "536284325762-sodbnkc8matajqsir2p9iusik9dnr9kv.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+          }
