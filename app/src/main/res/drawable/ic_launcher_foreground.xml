@@ -1,0 +1,31 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Gold Crown -->
+    <path
+        android:fillColor="#FACC15"
+        android:pathData="M34,34 L39,23 L46.5,29.5 L54,21 L61.5,29.5 L69,23 L74,34 Z" />
+    <!-- RedGame Neon Controller Body -->
+    <path
+        android:fillColor="#FF1A2E"
+        android:pathData="M32,42 L76,42 C83,42 88,58 86,67 C85,72 79,73 76,69 L70,62 L38,62 L32,69 C29,73 23,72 22,67 C20,58 25,42 32,42 Z" />
+    <!-- D-Pad -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M39,47 L43,47 L43,51 L47,51 L47,55 L43,55 L43,59 L39,59 L39,55 L35,55 L35,51 L39,51 Z" />
+    <!-- Action Buttons -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M65,47 A2.7,2.7 0 1,1 64.99,47 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M71,53 A2.7,2.7 0 1,1 70.99,53 Z" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M59,53 A2.7,2.7 0 1,1 58.99,53 Z" />
+    <path
+        android:fillColor="#FACC15"
+        android:pathData="M65,59 A2.7,2.7 0 1,1 64.99,59 Z" />
+</vector>

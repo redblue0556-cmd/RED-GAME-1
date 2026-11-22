@@ -1,0 +1,6 @@
+{
+  "name": "RedGame",
+  "description": "Platform game offline & online 2D/3D dengan sistem poin, leaderboard global, mabar real-time, chat, login Google, dan enkripsi data.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

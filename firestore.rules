@@ -1,0 +1,276 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Global default-deny safety net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() >= 1 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 40 &&
+             data.avatarTag is string && data.avatarTag.size() >= 1 && data.avatarTag.size() <= 4 &&
+             data.totalPoints is int && data.totalPoints >= 0 && data.totalPoints <= 100000000 &&
+             data.coins is int && data.coins >= 0 && data.coins <= 100000000 &&
+             data.gamesPlayed is int && data.gamesPlayed >= 0 && data.gamesPlayed <= 1000000 &&
+             data.wins is int && data.wins >= 0 && data.wins <= 1000000 &&
+             data.level is int && data.level >= 1 && data.level <= 999 &&
+             (!('dailyClaimedDate' in data) || (data.dailyClaimedDate is string && data.dailyClaimedDate.size() <= 20)) &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidPrivateVault(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.cipherText is string && data.cipherText.size() >= 1 && data.cipherText.size() <= 8192 &&
+             data.iv is string && data.iv.size() >= 8 && data.iv.size() <= 64 &&
+             data.algorithm is string && data.algorithm.size() >= 3 && data.algorithm.size() <= 40 &&
+             data.integrityHash is string && data.integrityHash.size() >= 32 && data.integrityHash.size() <= 128 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidGameScore(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.gameId is string && data.gameId.size() >= 1 && data.gameId.size() <= 40 &&
+             data.gameTitle is string && data.gameTitle.size() >= 1 && data.gameTitle.size() <= 80 &&
+             data.mode in ['offline', 'online'] &&
+             data.dimension in ['2D', '3D'] &&
+             data.score is int && data.score >= 0 && data.score <= 10000000 &&
+             data.pointsEarned is int && data.pointsEarned >= 0 && data.pointsEarned <= 100000 &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    function isValidLeaderboardEntry(data) {
+      return data.userId is string && data.userId.size() >= 1 && data.userId.size() <= 128 &&
+             data.displayName is string && data.displayName.size() >= 1 && data.displayName.size() <= 40 &&
+             data.avatarTag is string && data.avatarTag.size() >= 1 && data.avatarTag.size() <= 4 &&
+             data.totalPoints is int && data.totalPoints >= 0 && data.totalPoints <= 100000000 &&
+             data.wins is int && data.wins >= 0 && data.wins <= 1000000 &&
+             data.gamesPlayed is int && data.gamesPlayed >= 0 && data.gamesPlayed <= 1000000 &&
+             data.favoriteGame is string && data.favoriteGame.size() >= 1 && data.favoriteGame.size() <= 80 &&
+             data.visibility == 'public' &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidMatchRoom(data) {
+      return data.roomCode is string && data.roomCode.size() >= 4 && data.roomCode.size() <= 12 &&
+             data.gameType in ['TICTACTOE_3X3', 'CYBER_DUEL'] &&
+             data.hostUid is string && data.hostUid.size() >= 1 && data.hostUid.size() <= 128 &&
+             data.hostName is string && data.hostName.size() >= 1 && data.hostName.size() <= 40 &&
+             (!('guestUid' in data) || (data.guestUid is string && data.guestUid.size() >= 1 && data.guestUid.size() <= 128)) &&
+             (!('guestName' in data) || (data.guestName is string && data.guestName.size() >= 1 && data.guestName.size() <= 40)) &&
+             data.memberUids is list && data.memberUids.size() >= 1 && data.memberUids.size() <= 2 &&
+             data.memberUids[0] is string &&
+             data.status in ['waiting', 'playing', 'finished'] &&
+             data.boardState is string && data.boardState.size() >= 1 && data.boardState.size() <= 200 &&
+             data.turnUid is string && data.turnUid.size() >= 1 && data.turnUid.size() <= 128 &&
+             (!('winnerUid' in data) || (data.winnerUid is string && data.winnerUid.size() >= 1 && data.winnerUid.size() <= 128)) &&
+             data.roomSalt is string && data.roomSalt.size() >= 16 && data.roomSalt.size() <= 64 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isJoinRoomAction() {
+      return existing().status == 'waiting' &&
+             !('guestUid' in existing()) &&
+             request.auth.uid != existing().hostUid &&
+             incoming().guestUid == request.auth.uid &&
+             incoming().memberUids.size() == 2 &&
+             existing().hostUid in incoming().memberUids &&
+             request.auth.uid in incoming().memberUids &&
+             incoming().status == 'playing' &&
+             incoming().diff(existing()).affectedKeys().hasOnly(['guestUid', 'guestName', 'memberUids', 'status', 'updatedAt']);
+    }
+
+    function isMoveRoomAction() {
+      return existing().status == 'playing' &&
+             request.auth.uid in existing().memberUids &&
+             incoming().memberUids == existing().memberUids &&
+             incoming().diff(existing()).affectedKeys().hasOnly(['boardState', 'turnUid', 'status', 'winnerUid', 'updatedAt']);
+    }
+
+    function isCancelRoomAction() {
+      return existing().status == 'waiting' &&
+             request.auth.uid == existing().hostUid &&
+             incoming().status == 'finished' &&
+             incoming().memberUids == existing().memberUids &&
+             incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt']);
+    }
+
+    function isValidChatMessage(data) {
+      return data.roomId is string && data.roomId.size() >= 1 && data.roomId.size() <= 128 &&
+             data.senderUid is string && data.senderUid.size() >= 1 && data.senderUid.size() <= 128 &&
+             data.senderName is string && data.senderName.size() >= 1 && data.senderName.size() <= 40 &&
+             data.cipherText is string && data.cipherText.size() >= 1 && data.cipherText.size() <= 2000 &&
+             data.iv is string && data.iv.size() >= 8 && data.iv.size() <= 64 &&
+             data.memberUids is list && data.memberUids.size() >= 1 && data.memberUids.size() <= 2 &&
+             data.memberUids[0] is string &&
+             data.createdAt is timestamp && data.createdAt <= request.time;
+    }
+
+    // 1. User Profile (strictly owner-isolated)
+    match /users/{userId} {
+      allow get: if isSignedIn() && isValidId(userId) && request.auth.uid == userId;
+      allow list: if isSignedIn() && existing().userId == request.auth.uid;
+
+      allow create: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'avatarTag', 'totalPoints', 'coins', 'gamesPlayed', 'wins', 'level', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'avatarTag', 'totalPoints', 'coins', 'gamesPlayed', 'wins', 'level', 'dailyClaimedDate', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(userId) &&
+                       request.auth.uid == userId &&
+                       isValidUserProfile(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'avatarTag', 'totalPoints', 'coins', 'gamesPlayed', 'wins', 'level', 'dailyClaimedDate', 'updatedAt']);
+
+      allow delete: if false;
+
+      // 2. Encrypted Private User Vault (PII isolated & encrypted at rest)
+      match /private/{docId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(docId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(docId) &&
+                         docId == 'vault' &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'cipherText', 'iv', 'algorithm', 'integrityHash', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['userId', 'cipherText', 'iv', 'algorithm', 'integrityHash', 'createdAt', 'updatedAt']) &&
+                         isValidPrivateVault(incoming());
+
+        allow update: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(docId) &&
+                         docId == 'vault' &&
+                         request.auth.uid == userId &&
+                         isValidPrivateVault(incoming()) &&
+                         incoming().userId == existing().userId &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['cipherText', 'iv', 'algorithm', 'integrityHash', 'updatedAt']);
+
+        allow delete: if isSignedIn() && isValidId(userId) && isValidId(docId) && request.auth.uid == userId;
+      }
+
+      // 3. Immutable Score History
+      match /scores/{scoreId} {
+        allow get: if isSignedIn() && isValidId(userId) && isValidId(scoreId) && request.auth.uid == userId;
+        allow list: if isSignedIn() && request.auth.uid == userId;
+
+        allow create: if isSignedIn() &&
+                         isValidId(userId) &&
+                         isValidId(scoreId) &&
+                         request.auth.uid == userId &&
+                         incoming().userId == request.auth.uid &&
+                         incoming().keys().hasAll(['userId', 'gameId', 'gameTitle', 'mode', 'dimension', 'score', 'pointsEarned', 'createdAt']) &&
+                         incoming().keys().hasOnly(['userId', 'gameId', 'gameTitle', 'mode', 'dimension', 'score', 'pointsEarned', 'createdAt']) &&
+                         isValidGameScore(incoming());
+
+        allow update, delete: if false;
+      }
+    }
+
+    // 4. Global Leaderboard (public non-PII stats only; owner-writable only)
+    match /leaderboard/{entryId} {
+      allow get: if isSignedIn() && isValidId(entryId) && existing().visibility == 'public';
+      allow list: if isSignedIn() && existing().visibility == 'public';
+
+      allow create: if isSignedIn() &&
+                       isValidId(entryId) &&
+                       entryId == request.auth.uid &&
+                       incoming().userId == request.auth.uid &&
+                       incoming().visibility == 'public' &&
+                       incoming().keys().hasAll(['userId', 'displayName', 'avatarTag', 'totalPoints', 'wins', 'gamesPlayed', 'favoriteGame', 'visibility', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'displayName', 'avatarTag', 'totalPoints', 'wins', 'gamesPlayed', 'favoriteGame', 'visibility', 'createdAt', 'updatedAt']) &&
+                       isValidLeaderboardEntry(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(entryId) &&
+                       entryId == request.auth.uid &&
+                       isValidLeaderboardEntry(incoming()) &&
+                       incoming().userId == existing().userId &&
+                       incoming().visibility == existing().visibility &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'avatarTag', 'totalPoints', 'wins', 'gamesPlayed', 'favoriteGame', 'updatedAt']);
+
+      allow delete: if false;
+    }
+
+    // 5. Real-Time Mabar Multiplayer Rooms
+    match /match_rooms/{roomId} {
+      allow get: if isSignedIn() && isValidId(roomId) && (request.auth.uid in existing().memberUids || existing().status == 'waiting');
+      allow list: if isSignedIn() && (request.auth.uid in existing().memberUids || existing().status == 'waiting');
+
+      allow create: if isSignedIn() &&
+                       isValidId(roomId) &&
+                       incoming().hostUid == request.auth.uid &&
+                       incoming().status == 'waiting' &&
+                       incoming().memberUids.size() == 1 &&
+                       request.auth.uid in incoming().memberUids &&
+                       !('guestUid' in incoming()) &&
+                       !('guestName' in incoming()) &&
+                       !('winnerUid' in incoming()) &&
+                       incoming().keys().hasAll(['roomCode', 'gameType', 'hostUid', 'hostName', 'memberUids', 'status', 'boardState', 'turnUid', 'roomSalt', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['roomCode', 'gameType', 'hostUid', 'hostName', 'memberUids', 'status', 'boardState', 'turnUid', 'roomSalt', 'createdAt', 'updatedAt']) &&
+                       isValidMatchRoom(incoming());
+
+      allow update: if isSignedIn() &&
+                       isValidId(roomId) &&
+                       existing().status != 'finished' &&
+                       isValidMatchRoom(incoming()) &&
+                       incoming().hostUid == existing().hostUid &&
+                       incoming().roomCode == existing().roomCode &&
+                       incoming().gameType == existing().gameType &&
+                       incoming().roomSalt == existing().roomSalt &&
+                       incoming().createdAt == existing().createdAt &&
+                       (isJoinRoomAction() || isMoveRoomAction() || isCancelRoomAction());
+
+      allow delete: if false;
+
+      // 6. Encrypted In-Game Chat Messages (denormalized memberUids for flat evaluation)
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && isValidId(roomId) && isValidId(messageId) && request.auth.uid in existing().memberUids;
+        allow list: if isSignedIn() && request.auth.uid in existing().memberUids;
+
+        allow create: if isSignedIn() &&
+                         isValidId(roomId) &&
+                         isValidId(messageId) &&
+                         isValidChatMessage(incoming()) &&
+                         incoming().senderUid == request.auth.uid &&
+                         incoming().roomId == roomId &&
+                         request.auth.uid in incoming().memberUids &&
+                         incoming().keys().hasAll(['roomId', 'senderUid', 'senderName', 'cipherText', 'iv', 'memberUids', 'createdAt']) &&
+                         incoming().keys().hasOnly(['roomId', 'senderUid', 'senderName', 'cipherText', 'iv', 'memberUids', 'createdAt']) &&
+                         exists(/databases/$(database)/documents/match_rooms/$(roomId)) &&
+                         request.auth.uid in get(/databases/$(database)/documents/match_rooms/$(roomId)).data.memberUids;
+
+        allow update, delete: if false;
+      }
+    }
+  }
+}

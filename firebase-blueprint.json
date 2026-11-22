@@ -1,0 +1,135 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "Authenticated RedGame player profile with points, coins, and match stats (non-PII).",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID of the owner." },
+        "displayName": { "type": "string", "description": "Gamer display name." },
+        "avatarTag": { "type": "string", "description": "Short 1-4 char avatar initials." },
+        "totalPoints": { "type": "integer", "description": "Total accumulated game points." },
+        "coins": { "type": "integer", "description": "RedGame reward coins." },
+        "gamesPlayed": { "type": "integer", "description": "Total games played." },
+        "wins": { "type": "integer", "description": "Total multiplayer or ranked wins." },
+        "level": { "type": "integer", "description": "Player progression level." },
+        "dailyClaimedDate": { "type": "string", "description": "ISO date of last daily reward claim." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp of last update." }
+      },
+      "required": ["userId", "displayName", "avatarTag", "totalPoints", "coins", "gamesPlayed", "wins", "level", "createdAt", "updatedAt"]
+    },
+    "PrivateVault": {
+      "title": "PrivateVault",
+      "description": "AES-256-GCM client-side encrypted PII and privacy vault stored under users/{userId}/private/vault.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Firebase Auth UID of the owner." },
+        "cipherText": { "type": "string", "description": "Base64-encoded AES-256-GCM ciphertext." },
+        "iv": { "type": "string", "description": "Base64-encoded 12-byte GCM initialization vector." },
+        "algorithm": { "type": "string", "description": "Encryption algorithm identifier (AES-256-GCM)." },
+        "integrityHash": { "type": "string", "description": "SHA-256 integrity digest of encrypted payload." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp of last update." }
+      },
+      "required": ["userId", "cipherText", "iv", "algorithm", "integrityHash", "createdAt", "updatedAt"]
+    },
+    "GameScore": {
+      "title": "GameScore",
+      "description": "Immutable record of a completed offline or online 2D/3D game session.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner UID." },
+        "gameId": { "type": "string", "description": "Catalog game identifier." },
+        "gameTitle": { "type": "string", "description": "Human-readable game title." },
+        "mode": { "type": "string", "enum": ["offline", "online"], "description": "Play mode." },
+        "dimension": { "type": "string", "enum": ["2D", "3D"], "description": "Graphics dimension." },
+        "score": { "type": "integer", "description": "Raw score achieved in the game." },
+        "pointsEarned": { "type": "integer", "description": "Global leaderboard points earned." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of record." }
+      },
+      "required": ["userId", "gameId", "gameTitle", "mode", "dimension", "score", "pointsEarned", "createdAt"]
+    },
+    "LeaderboardEntry": {
+      "title": "LeaderboardEntry",
+      "description": "Public non-PII global leaderboard ranking entry per player.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string", "description": "Owner UID." },
+        "displayName": { "type": "string", "description": "Player display name." },
+        "avatarTag": { "type": "string", "description": "Short 1-4 char avatar initials." },
+        "totalPoints": { "type": "integer", "description": "Total ranking points." },
+        "wins": { "type": "integer", "description": "Total wins." },
+        "gamesPlayed": { "type": "integer", "description": "Total games played." },
+        "favoriteGame": { "type": "string", "description": "Most recently played or favorite game." },
+        "visibility": { "type": "string", "enum": ["public"], "description": "Explicit public ranking marker." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp of last update." }
+      },
+      "required": ["userId", "displayName", "avatarTag", "totalPoints", "wins", "gamesPlayed", "favoriteGame", "visibility", "createdAt", "updatedAt"]
+    },
+    "MatchRoom": {
+      "title": "MatchRoom",
+      "description": "Real-time multiplayer Mabar room with turn state and E2E chat salt.",
+      "type": "object",
+      "properties": {
+        "roomCode": { "type": "string", "description": "Short join code." },
+        "gameType": { "type": "string", "enum": ["TICTACTOE_3X3", "CYBER_DUEL"], "description": "Multiplayer game type." },
+        "hostUid": { "type": "string", "description": "Host Firebase Auth UID." },
+        "hostName": { "type": "string", "description": "Host display name." },
+        "guestUid": { "type": "string", "description": "Guest Firebase Auth UID." },
+        "guestName": { "type": "string", "description": "Guest display name." },
+        "memberUids": { "type": "string", "description": "Bounded array of 1-2 participant UIDs." },
+        "status": { "type": "string", "enum": ["waiting", "playing", "finished"], "description": "Match lifecycle status." },
+        "boardState": { "type": "string", "description": "Serialized game board or duel state." },
+        "turnUid": { "type": "string", "description": "UID of current active player." },
+        "winnerUid": { "type": "string", "description": "UID of winner or DRAW." },
+        "roomSalt": { "type": "string", "description": "Random salt for deriving room AES-256-GCM chat key." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp of creation." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Server timestamp of last update." }
+      },
+      "required": ["roomCode", "gameType", "hostUid", "hostName", "memberUids", "status", "boardState", "turnUid", "roomSalt", "createdAt", "updatedAt"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "AES-256-GCM encrypted in-game chat message inside a Mabar room.",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string", "description": "Parent match room ID." },
+        "senderUid": { "type": "string", "description": "Sender Firebase Auth UID." },
+        "senderName": { "type": "string", "description": "Sender display name." },
+        "cipherText": { "type": "string", "description": "AES-256-GCM Base64 encrypted message." },
+        "iv": { "type": "string", "description": "Base64 12-byte GCM IV." },
+        "memberUids": { "type": "string", "description": "Denormalized participant UIDs for flat rule evaluation." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Server timestamp." }
+      },
+      "required": ["roomId", "senderUid", "senderName", "cipherText", "iv", "memberUids", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Owner-isolated player profile and point balances."
+    },
+    "/users/{userId}/private/{docId}": {
+      "schema": { "$ref": "#/entities/PrivateVault" },
+      "description": "AES-256-GCM encrypted user privacy vault."
+    },
+    "/users/{userId}/scores/{scoreId}": {
+      "schema": { "$ref": "#/entities/GameScore" },
+      "description": "Immutable per-user score history for 2D/3D offline & online games."
+    },
+    "/leaderboard/{entryId}": {
+      "schema": { "$ref": "#/entities/LeaderboardEntry" },
+      "description": "Global non-PII leaderboard entries."
+    },
+    "/match_rooms/{roomId}": {
+      "schema": { "$ref": "#/entities/MatchRoom" },
+      "description": "Real-time multiplayer Mabar rooms."
+    },
+    "/match_rooms/{roomId}/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/ChatMessage" },
+      "description": "AES-256-GCM encrypted real-time chat messages scoped to room participants."
+    }
+  }
+}

@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">RedGame</string>
+    <string name="tagline">YOUR WORLD. YOUR GAMES.</string>
+    <string name="sign_in_with_google">Masuk dengan Google</string>
+    <string name="sign_in_subtitle">Masuk aman via Google &amp; enkripsi AES-256-GCM untuk sinkronisasi poin, leaderboard global, dan mabar real-time.</string>
+    <string name="search_hint">Cari game 3D, 2D, atau mabar…</string>
+    <string name="nav_home">Home</string>
+    <string name="nav_games">Games</string>
+    <string name="nav_mabar">Mabar</string>
+    <string name="nav_rank">Rank</string>
+    <string name="nav_profile">Profil</string>
+    <string name="play_now">Main Sekarang</string>
+    <string name="daily_reward">Daily Reward</string>
+    <string name="security_badge">Enkripsi AES-256-GCM Aktif</string>
+    <string name="sign_out">Keluar Akun</string>
+</resources>
